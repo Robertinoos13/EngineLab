@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport", content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="index.css">
+
+        <title>Engines Sim</title>
+    </head>
+
+    <body>
+        
+        <section class="using-engine-menu">
+            <p>Current RPM: <span id="current-rpm">0</span></p>
+            <p>Current Speed: <span id="current-speed">0</span> km/h</p>
+            <p>Acumulated wear: <span id="current-acumulated-wear">0.00</span>%</p>
+            <p>Oil Temperature: <span id="current-oil-temperature">55</span>℃</p>
+            <p>Mileage: <span id="current-mileage">0.00</span> km</p>
+            <button id="starting-car-button" onclick="startCar();">START ENGINE</button>
+            <button id="accelerating-car-button" onclick="accelerateCar();">ACCELERATE</button>
+            <div>
+                <input id="forcing-car-procent-selector" type="range" min="10" max="100" value="50">
+                <p>Forcing car at: <span id="forcing-car-procent">50</span>%</p>
+            </div>
+        </section>
+    
+
+        
+
+        <section class="engine-parameters">
+
+            <br>
+            <h2>Engine parameters</h2>
+
+            <h3>Engine Size</h3>
+            <input id="engine-size-selector" type="range" min="1000" max="9999", value="2000", step="10">
+
+            <h3>Combustible Type</h3>
+            <select id="combustible-type-selector">
+                <option value="gasoline">gasoline</option>
+                <option value="diesel">diesel</option>
+            </select>
+
+            <h3>Cooling Type</h3>
+            <select id="cooling-type-selector">
+                <option value="liquid">liquid</option>
+                <option value="air">air</option>
+            </select>
+
+            <h3>Engine Type</h3>
+            <select id="engine-type-selector">
+                <option value="inline">I (Inline)</option>
+                <option value="V Engine">V (V Engine)</option>
+            </select>
+
+            <h3>Max RPM</h3>
+            <input id="max-rpm-selector" type="range" min="1000" max="10000", value="5000", step="100">
+
+            <h3>Engine Material</h3>
+            <select id="engine-material-selector">
+                <option value="iron">iron</option>
+                <option value="aluminium">aluminium</option>
+            </select>
+
+            <h3>Torque</h3>
+            <input id="torque-selector" type="range" min="60" max="999", value="200", step="1">
+        
+            <h3>Turbo Type</h3>
+            <select id="turbo-type-selector">
+                <option value="NA">NA</option>
+                <option value="turbo">turbo</option>
+                <option value="twin-turbo">twin turbo</option>
+            </select>
+
+            <h3>Turbo Pression</h3>
+            <input id="turbo-pression-selector" type="range" min="0.5" max="5.0", value="2.0", step="0.1">
+
+        </section>
+
+        <br>
+
+        <section id="car-parameters">
+            <h2>Car parameters</h2>
+
+            <h3>Body weight: <span id="car-body-weight">1000</span> kg</h3>
+            <input type="range" id="car-body-weight-selector" min="100" max="9999" value="1000">
+
+            <h3>Body aerodinamic rating: <span id="car-aerodinamics-rating">3</span>/10</h3>
+            <input type="range" id="car-aerodinamics-rating-selector" min="1" max="10" value="3">
+
+            <h3>Brakes Type</h3>
+            <select id="brake-type-selector">
+                <option value="drum">Drum Brakes</option>
+                <option value="disc">Disc Brakes</option>
+                <option value="ventilated_disc">Ventilated Disc Brakes</option>
+                <option value="performance_disc">Performance Disc Brakes</option>
+                <option value="carbon_ceramic">Carbon Ceramic Brakes</option>
+            </select>
+
+        </section>
+        
+
+        <section class="motor-specs">
+            <br>
+            <h2>Engine Specifications</h2>
+
+            <p>Max RPM supported: <span id="max-rpm">5000</span></p>
+            <p>Combustible Type: <span id="combustible-type">gasoline</span></p>
+            <p>Engine Type: <span id="engine-type">inline</span></p>
+            <p>Material: <span id="engine-material">iron</span></p>
+            <p>Horsepower: <span id="horse-power">114</span> hp</p>
+            <p>Torque: <span id="torque">200</span> Nm</p>
+            <p>Cooling Type: <span id="cooling-type">liquid</span></p>
+            <p>Turbo Type: <span id="turbo-type">NA</span></p>
+            <p>Turbo Pression: <span id="turbo-pression">2.0</span> bar</p>
+            <p>Engine Size: <span id="engine-size">2000</span> cm³</p>
+            <p>Engine Weight: <span id="engine-weight">200</span> kg</p>
+        </section>
+
+        <script src="script.js"></script>
+    </body>
+
+</html>
