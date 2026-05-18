@@ -12,7 +12,7 @@ h2{
     background-color: rgba(250, 190, 150, 0.9);
 }
 
-.engine-parameters, .car-parameters, .motor-specs{
+.engine-parameters, .car-parameters, .motor-specs, .ambient-conditions{
     background-color: rgba(250, 190, 150, 0.5);
     margin-right: 50%;
     padding-bottom: 4%;

@@ -30,6 +30,9 @@ const engineMaterialOutputElement = document.getElementById("engine-material");
 const engineTypeSelectorElement = document.getElementById("engine-type-selector");
 const engineTypeOutputElement = document.getElementById("engine-type");
 
+const numberOfPistonsSelectorElement = document.getElementById("number-of-pistons-selector");
+const numberOfPistonsOutputElement = document.getElementById("number-of-pistons");
+
 const engineWeightOutputElement = document.getElementById("engine-weight");
 
 const carBodyWeightSelectorElement = document.getElementById("car-body-weight-selector");
@@ -42,6 +45,9 @@ const carBodyAerodinamicsRatingSelectorElement = document.getElementById("car-ae
 const carBodyAerodinamicsRatingOutputElement = document.getElementById("car-aerodinamics-rating");
 
 const brakeTypeSelectorElement = document.getElementById("brake-type-selector");
+
+const ambientTemperatureSelectorElement = document.getElementById("ambient-temperature-selector")
+const ambientTemperatureOutputElement = document.getElementById("ambient-temperature")
 
 // 2. Alte elemente
 const startEngineButton = document.getElementById("starting-car-button");
@@ -100,6 +106,16 @@ function getNumberFromOutput(element, fallbackValue = 0) {
 
 function getIdleRPM() {
     return combustibleTypeSelectorElement.value === "diesel" ? IDLE_RPM_DIESEL : IDLE_RPM_GASOLINE;
+}
+
+function getAmbientTemperature() {
+    const value = Number(ambientTemperatureSelectorElement.value);
+    return Number.isFinite(value) ? value : AMBIENT_TEMPERATURE;
+}
+
+function getPistonCount() {
+    const value = Number.parseInt(numberOfPistonsSelectorElement.value, 10);
+    return Number.isFinite(value) ? value : 4;
 }
 
 // Sliderul "Forcing car at" devine un numar intre 0.10 si 1.00.
@@ -273,6 +289,8 @@ function updateOilTemperature(deltaTime, topSpeed) {
     // Temperatura uleiului are o tinta, apoi se apropie incet de ea.
     // Tinta creste cand motorul e turat, cand apesi acceleratia si cand ai turbo.
     const maxRPM = Number(maxRPMRangerElement.value);
+    const pistonCount = getPistonCount();
+    const ambientTemperature = getAmbientTemperature();
     const rpmRatio = clamp(current_rpm / maxRPM, 0, 1.25);
     const throttle = car_is_accelerating ? getThrottlePercent() : 0;
     const speedCooling = clamp(current_speed / Math.max(topSpeed, 1), 0, 1);
@@ -282,10 +300,12 @@ function updateOilTemperature(deltaTime, topSpeed) {
     // Racirea pe aer depinde mai mult de viteza masinii.
     const coolingBonus = isLiquidCooled ? 14 + speedCooling * 7 : 5 + speedCooling * 14;
     const fuelBonus = combustibleTypeSelectorElement.value === "diesel" ? -3 : 4;
-    const loadHeat = rpmRatio * 48 + throttle * 34 + getTurboHeatBonus() + fuelBonus;
+    const pistonHeatBonus = Math.max(0, pistonCount - 4) * 1.15 + (engineTypeSelectorElement.value === "V Engine" ? 1.4 : 0);
+    const ambientHeat = (ambientTemperature - AMBIENT_TEMPERATURE) * 0.38;
+    const loadHeat = rpmRatio * 48 + throttle * 34 + getTurboHeatBonus() + fuelBonus + pistonHeatBonus + ambientHeat;
     const targetTemperature = car_is_on
         ? clamp(58 + loadHeat - coolingBonus, 45, 165)
-        : AMBIENT_TEMPERATURE;
+        : ambientTemperature;
     const responseSpeed = car_is_on ? 0.045 : 0.025;
 
     // In loc sa punem temperatura direct la tinta, o apropiem treptat.
@@ -301,6 +321,7 @@ function updateWear(deltaTime) {
     }
 
     const maxRPM = Number(maxRPMRangerElement.value);
+    const pistonCount = getPistonCount();
     const rpmRatio = clamp(current_rpm / maxRPM, 0, 1.35);
     const throttle = car_is_accelerating ? getThrottlePercent() : 0;
 
@@ -311,8 +332,9 @@ function updateWear(deltaTime) {
     const highRpmWear = Math.pow(Math.max(0, rpmRatio - 0.78), 2) * 0.019;
     const loadWear = throttle * 0.0018;
     const turboWear = turboTypeSelectorElement.value === "NA" ? 0 : Number(turboPressionSelectorElement.value) * 0.00022 * throttle;
+    const pistonWear = Math.max(0, pistonCount - 4) * 0.00008 + (engineTypeSelectorElement.value === "V Engine" ? 0.00005 : 0);
 
-    current_acumulated_wear += (0.00025 + heatWear + coldWear + highRpmWear + loadWear + turboWear) * deltaTime;
+    current_acumulated_wear += (0.00025 + heatWear + coldWear + highRpmWear + loadWear + turboWear + pistonWear) * deltaTime;
     current_acumulated_wear = clamp(current_acumulated_wear, 0, 100);
 }
 
@@ -437,6 +459,7 @@ function accelerateCar() {
 
 function calculateEngineWeight() {
     // Greutatea motorului este estimata din cilindree + material + turbo + racire + tip motor.
+    const pistonCount = getPistonCount();
     let material_bonus = 0.00;
     let turbo_system_bonus = 0.00;
     let cooling_type_bonus = 0.00;
@@ -466,7 +489,9 @@ function calculateEngineWeight() {
         cooling_type_bonus = 0;
     }
 
-    const engine_weight = (((Number(engineSizeSelectorElement.value) / 10) * material_bonus) + (turbo_system_bonus + cooling_type_bonus + engine_type_bonus)) * 0.55;
+    const baseWeight = (((Number(engineSizeSelectorElement.value) / 10) * material_bonus) + (turbo_system_bonus + cooling_type_bonus + engine_type_bonus)) * 0.55;
+    const pistonWeightFactor = clamp(1 + (pistonCount - 4) * 0.028, 0.82, 1.42);
+    const engine_weight = baseWeight * pistonWeightFactor;
 
     return engine_weight.toFixed(2);
 }
@@ -477,10 +502,12 @@ function calculateHorsePower() {
     const torque = Number(torqueSelectorElement.value);
     const maxRPM = Number(maxRPMRangerElement.value);
     const engineSize = Number(engineSizeSelectorElement.value);
+    const pistonCount = getPistonCount();
     const pressure = Number(turboPressionSelectorElement.value);
     const sizeFactor = clamp(0.78 + engineSize / 5200, 0.85, 2.2);
     const fuelFactor = combustibleTypeSelectorElement.value === "diesel" ? 0.92 : 1;
     const engineTypeFactor = engineTypeSelectorElement.value === "V Engine" ? 1.06 : 1;
+    const pistonPowerFactor = clamp(1 + (pistonCount - 4) * 0.035, 0.72, 1.48);
     let turboBoost = 0;
 
     // Turbo-ul adauga cai putere peste formula de baza.
@@ -490,7 +517,7 @@ function calculateHorsePower() {
         turboBoost = 24 * pressure;
     }
 
-    return ((torque * maxRPM) / 7127) * sizeFactor * fuelFactor * engineTypeFactor + turboBoost;
+    return ((torque * maxRPM) / 7127) * sizeFactor * fuelFactor * engineTypeFactor * pistonPowerFactor + turboBoost;
 }
 
 function refreshSpecifications() {
@@ -506,11 +533,13 @@ function refreshSpecifications() {
     engineSizeOutputElement.textContent = engineSizeSelectorElement.value;
     engineMaterialOutputElement.textContent = engineMaterialSelectorElement.value;
     engineTypeOutputElement.textContent = engineTypeSelectorElement.value;
+    numberOfPistonsOutputElement.textContent = numberOfPistonsSelectorElement.value;
     carBodyWeightOutputElement.textContent = carBodyWeightSelectorElement.value;
     forcingCarProcentOutputElement.textContent = forcingCarProcentSelectorElement.value;
     carBodyAerodinamicsRatingOutputElement.textContent = carBodyAerodinamicsRatingSelectorElement.value;
     engineWeightOutputElement.textContent = calculateEngineWeight();
     horsePowerOutputElement.textContent = Number(calculateHorsePower()).toFixed(0);
+    ambientTemperatureOutputElement.textContent = ambientTemperatureSelectorElement.value;
 }
 
 function applyFuelLimits() {
@@ -527,10 +556,33 @@ function applyFuelLimits() {
     }
 }
 
+function applyPistonLimits() {
+    // V Engine trebuie sa aiba numar par de pistoane.
+    // Inline poate folosi orice numar.
+    const minPistons = Number(numberOfPistonsSelectorElement.min);
+    const maxPistons = Number(numberOfPistonsSelectorElement.max);
+    const rawPistons = getPistonCount();
+
+    if (engineTypeSelectorElement.value === "V Engine") {
+        numberOfPistonsSelectorElement.step = "2";
+
+        let correctedPistons = rawPistons;
+        if (correctedPistons % 2 !== 0) {
+            correctedPistons = correctedPistons < maxPistons ? correctedPistons + 1 : correctedPistons - 1;
+        }
+
+        numberOfPistonsSelectorElement.value = String(clamp(correctedPistons, minPistons, maxPistons));
+        return;
+    }
+
+    numberOfPistonsSelectorElement.step = "1";
+}
+
 function onSpecificationChanged() {
     // Aceasta functie este chemata de toate controalele din pagina.
     // Intai aplica reguli speciale, apoi redeseneaza specificatiile.
     applyFuelLimits();
+    applyPistonLimits();
     refreshSpecifications();
 }
 
@@ -543,6 +595,8 @@ function onSpecificationChanged() {
     carBodyWeightSelectorElement,
     forcingCarProcentSelectorElement,
     carBodyAerodinamicsRatingSelectorElement,
+    numberOfPistonsSelectorElement,
+    ambientTemperatureSelectorElement
 ].forEach((element) => {
     element.addEventListener("input", onSpecificationChanged);
 });

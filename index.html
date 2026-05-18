@@ -54,6 +54,9 @@
                 <option value="V Engine">V (V Engine)</option>
             </select>
 
+            <h3>Number of Pistons</h3>
+            <input type="range" id="number-of-pistons-selector" min="2" max="16" value="4" step="1">
+
             <h3>Max RPM</h3>
             <input id="max-rpm-selector" type="range" min="1000" max="10000", value="5000", step="100">
 
@@ -107,6 +110,17 @@
         
         <br>
 
+        <section class="ambient-conditions">
+            <br>
+            <h2>Ambient Conditions</h2>
+            <br>
+
+            <h3>Ambient Temperature: <span id="ambient-temperature">24</span>℃</h3>
+            <input type="range" min="-22" max="55" value="24" id="ambient-temperature-selector">
+        </section>
+
+        <br>
+
         <section class="motor-specs">
             <br>
             <h2>Engine Specifications</h2>
@@ -115,6 +129,7 @@
             <p>Max RPM supported: <span id="max-rpm">5000</span></p>
             <p>Combustible Type: <span id="combustible-type">gasoline</span></p>
             <p>Engine Type: <span id="engine-type">inline</span></p>
+            <p>Number of Pistons: <span id="number-of-pistons">4</span></p>
             <p>Material: <span id="engine-material">iron</span></p>
             <p>Horsepower: <span id="horse-power">114</span> hp</p>
             <p>Torque: <span id="torque">200</span> Nm</p>
